@@ -58,7 +58,7 @@
         .restaurant-item h3 { font-size: 16px; color: #333; }
         
         /* 🛠️ 매장명 옆 대분류 카테고리 스타일 */
-        .restaurant-category { font-size: 12px; color: #D28E00; font-weight: bold; background: #FFF4CC; padding: 2px 6px; border-radius: 3px; } }
+        .restaurant-category { font-size: 12px; color: #D28E00; font-weight: bold; background: #FFF4CC; padding: 2px 6px; border-radius: 3px; }
 
         .restaurant-item p { font-size: 13px; color: #666; margin-bottom: 3px; }
         
@@ -123,23 +123,59 @@
     </div>
 
     <script>
-        // 🛠️ "category" 데이터 속성 추가
-        const restaurantData = [
-            { name: "트라가 역삼점", address: "서울 강남구 테헤란로25길 46", category: "양식", menu: "스페인 요리 (빠에야, 감바스)", info: "네이버 예약 고객 콜키지 1병 프리", city: "서울특별시", region: "강남구" },
-            { name: "고우가 여의도점", address: "서울 영등포구 여의대로 24", category: "한식", menu: "한우 오마카세", info: "콜키지 프리", city: "서울특별시", region: "영등포구" },
-            { name: "우수", address: "서울특별시 마포구 백범로 199", category: "한식", menu: "소고기 구이, 육회", info: "콜키지 프리 및 무제한 주차장 완비", city: "서울특별시", region: "마포구" },
-            { name: "메르시", address: "서울특별시 서초구 논현로 나길 10", category: "양식", menu: "슈바인학센, 프랑스 요리", info: "와인, 위스키 콜키지 프리<br>글라스 차지 1잔당 3,000원", city: "서울특별시", region: "서초구" },
-            { name: "효 정자동본점", address: "경기도 성남시 분당구 성남대로 275", category: "일식", menu: "스키야키, 세이로무시", info: "-", city: "경기도", region: "분당구" },
-            { name: "양마담 방촌양고기 분당직영점", address: "경기도 성남시 분당구 정자일로 162", category: "기타", menu: "양갈비, 양꼬치", info: "-", city: "경기도", region: "분당구" },
-            { name: "제주클래식 분당점", address: "경기도 성남시 분당구 정자일로 240", category: "한식", menu: "제주 흑돼지 구이", info: "-", city: "경기도", region: "분당구" },
-            { name: "인천 송도 갈비", address: "인천 연수구 인천타워대로 251", category: "한식", menu: "숯불 갈비, 한정식", info: "와인 콜키지 프리", city: "인천광역시", region: "연수구" },
-            { name: "부산 해운대 소문난암소갈비", address: "부산 해운대구 중동2로10번길 30-10", category: "한식", menu: "한우 양념갈비, 감자사리", info: "콜키지 병당 프리 이벤트 중", city: "부산광역시", region: "해운대구" },
-            { name: "미미육 서울대입구역본점", address: "서울특별시 관악구 봉천로 435", category: "한식", menu: "돼지고기", info: "콜키지 프리", city: "서울특별시", region: "관악구" }       
-        ];
+        // 🔗 공유해주신 구글 스프레드시트 웹 게시 CSV 링크 적용 완료
+        const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQJNWvQO4xEdc6oYle5wIXjLXIUYeqmXDzB-k9qNDgPtNTSTEPTjMvkUg5HQxttVViWfyH4UryVtxJ/pub?gid=0&single=true&output=csv";
 
-        // 현재 선택된 필터 상태 관리
+        let restaurantData = [];
         let currentCity = 'all';
         let currentRegion = 'all';
+
+        // 1. 구글 스프레드시트 CSV 데이터를 JS 객체 배열로 변환하는 함수
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n');
+            if (lines.length === 0) return [];
+            
+            // 첫 번째 줄에서 헤더(키값) 추출 (양끝 공백 및 눈에 안보이는 캐리지 리턴(\r) 제거)
+            const headers = lines[0].split(',').map(header => header.trim().replace(/\r/g, ''));
+            const result = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                
+                // 따옴표 안의 쉼표(,)는 보존하고 열을 나누기 위한 매칭 정규식
+                const matches = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || lines[i].split(',');
+                const obj = {};
+                
+                headers.forEach((header, index) => {
+                    let value = matches[index] ? matches[index].trim().replace(/\r/g, '') : '';
+                    // 값 좌우에 붙어 있는 큰따옴표(") 제거
+                    value = value.replace(/^"(.*)"$/, '$1');
+                    obj[header] = value;
+                });
+                result.push(obj);
+            }
+            return result;
+        }
+
+        // 2. 외부 데이터를 가져와 초기 레이아웃을 뿌려주는 비동기 메인 함수
+        async function initApp() {
+            const listContainer = document.getElementById('list-container');
+            listContainer.innerHTML = "<div style='padding: 20px; color: #888; font-size: 14px;'>맛집 정보를 불러오는 중입니다...</div>";
+            
+            try {
+                const response = await fetch(sheetUrl);
+                if (!response.ok) throw new Error("스프레드시트 로드 실패");
+                
+                const csvText = await response.text();
+                restaurantData = parseCSV(csvText);
+                
+                // 데이터 정렬 완료 후 전체 리스트 초기 노출
+                displayList('all', 'all');
+            } catch (error) {
+                console.error("데이터 로드 실패:", error);
+                listContainer.innerHTML = "<div style='padding: 20px; color: #e03131; font-size: 14px;'>데이터 로드에 실패했습니다. 스프레드시트 설정을 확인해 주세요.</div>";
+            }
+        }
 
         function changeMap(keyword) {
             const mapUrl = `https://maps.google.com/maps?q=${encodeURIComponent(keyword)}&t=&z=16&ie=UTF-8&iwloc=&output=embed`;
@@ -228,7 +264,8 @@
             });
         }
 
-        displayList('all', 'all');
+        // 페이지 시작 시 스프레드시트 데이터 불러오기 시작
+        window.onload = initApp;
     </script>
 </body>
 </html>
