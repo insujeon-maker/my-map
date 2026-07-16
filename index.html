@@ -13,16 +13,17 @@
             padding: 20px; 
             background: linear-gradient(135deg, #A61396 0%, #681DD6 100%); 
             color: white; 
-            /* 🛠️ 우측 로고 배치를 위한 Flexbox 스타일 추가 */
+            /* 🛠️ 우측 로고 배치를 위한 Flexbox 스타일 */
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 15px;
         }
         .sidebar-header .header-text { flex: 1; }
-        /* 🛠️ 로고 이미지 스타일 (크기는 원하시는 대로 조절 가능합니다) */
+        
+        /* 🛠️ 로고 이미지 스타일 */
         .sidebar-header .header-logo {
-            width: 60px;
+            width: 65px;
             height: auto;
             object-fit: contain;
         }
@@ -97,8 +98,8 @@
                     <p>술을 사랑하는 여러분을 위해<br>요즘이술이 준비했습니다 💜</p>
                     <p style="font-size: 11px; margin-top: 8px; opacity: 0.85;">문의사항은 yosool@chosunbiz.com</p>
                 </div>
-                <!-- 🛠️ 로고 이미지 태그 추가 (src 부분에 실제 이미지 주소를 넣어주세요) -->
-                <img class="header-logo" src="요즘이술 로고 65.png" alt="요즘이술 로고">
+                <!-- 🛠️ 공백을 URL 인코딩(%20) 처리하여 경로 연결 오류 방지 -->
+                <img class="header-logo" src="요즘이술%20로고%2065.png" alt="요즘이술 로고">
             </div>
             
             <!-- 2단계 지역 필터 영역 -->
@@ -201,10 +202,9 @@
             return result;
         }
 
-        // 2. 두 시/도 명칭이 일치하는지 비교하는 헬퍼 함수 (예: "서울" === "서울특별시" 둘 다 일치처리)
+        // 2. 두 시/도 명칭이 일치하는지 비교하는 헬퍼 함수
         function isMatchingCity(filterCity, dataCity) {
             if (!dataCity) return false;
-            // 앞의 2글자만 비교 (예: '서울' vs '서울특별시', '경기' vs '경기도')
             const fSub = filterCity.substring(0, 2);
             const dSub = dataCity.substring(0, 2);
             return fSub === dSub;
@@ -253,12 +253,11 @@
                 subSection.style.display = 'block';
                 document.getElementById('sub-filter-label').innerText = `${city} 세부 지역`;
                 
-                // 유연한 명칭 비교를 적용하여 구(Region) 필터링 목록 추출
                 const regions = [...new Set(
                     restaurantData
                         .filter(store => isMatchingCity(city, store.city))
-                        .map(store => store.region)
-                )].sort();
+                        .map(store => store.region ? store.region.trim() : "")
+                )].filter(reg => reg && reg !== "-").sort();
 
                 regionContainer.innerHTML = `<button class="filter-btn active" onclick="selectRegion('all', this)">전체</button>`;
                 
@@ -266,9 +265,7 @@
                     regionContainer.innerHTML = `<span style="font-size: 12px; color: #999; padding-left: 5px;">등록된 맛집 정보가 아직 없습니다.</span>`;
                 } else {
                     regions.forEach(reg => {
-                        if(reg && reg !== "-") {
-                            regionContainer.innerHTML += `<button class="filter-btn" onclick="selectRegion('${reg}', this)">${reg}</button>`;
-                        }
+                        regionContainer.innerHTML += `<button class="filter-btn" onclick="selectRegion('${reg}', this)">${reg}</button>`;
                     });
                 }
 
@@ -291,16 +288,26 @@
             listContainer.innerHTML = ""; 
 
             restaurantData.forEach((store) => {
-                const matchCity = (cityFilter === 'all' || isMatchingCity(cityFilter, store.city));
-                const matchRegion = (regionFilter === 'all' || store.region === regionFilter);
+                const storeCity = store.city ? store.city.trim() : "";
+                const storeRegion = store.region ? store.region.trim() : "";
+
+                const matchCity = (cityFilter === 'all' || isMatchingCity(cityFilter, storeCity));
+                const matchRegion = (regionFilter === 'all' || storeRegion === regionFilter);
 
                 if (matchCity && matchRegion) {
                     const listItem = document.createElement('div');
                     listItem.className = 'restaurant-item';
                     listItem.onclick = () => changeMap(store.address + " " + store.name);
                     
-                    const menuText = store.menu ? store.menu : "정보 없음";
+                    // 🍴 메뉴 정보가 없거나 대시(-) 혹은 빈 값일 때 깔끔하게 숨김 처리
+                    const hasMenu = store.menu && store.menu.trim() !== "" && store.menu !== "-";
+                    const menuHtml = hasMenu ? `<div class="menu-info">${store.menu}</div>` : "";
+                    
                     const categoryTag = store.category ? `<span class="restaurant-category">${store.category}</span>` : "";
+
+                    // 🍾 콜키지 혜택 정보가 없거나 대시(-) 일 때는 뱃지를 띄우지 않음
+                    const hasInfo = store.info && store.info.trim() !== "" && store.info !== "-";
+                    const badgeHtml = hasInfo ? `<span class="badge">${store.info}</span>` : "";
 
                     listItem.innerHTML = `
                         <div class="restaurant-title-area">
@@ -308,8 +315,8 @@
                             ${categoryTag}
                         </div>
                         <p>${store.address}</p>
-                        <div class="menu-info">${menuText}</div>
-                        <span class="badge">${store.info}</span>
+                        ${menuHtml}
+                        ${badgeHtml}
                     `;
                     listContainer.appendChild(listItem);
                 }
