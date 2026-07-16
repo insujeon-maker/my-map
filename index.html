@@ -9,7 +9,23 @@
         .container { display: flex; height: 100%; width: 100%; }
         
         .sidebar { width: 380px; height: 100%; background: #fff; box-shadow: 2px 0 5px rgba(0,0,0,0.1); z-index: 10; display: flex; flex-direction: column; }
-        .sidebar-header { padding: 20px; background: linear-gradient(135deg, #A61396 0%, #681DD6 100%); color: white; }
+        .sidebar-header { 
+            padding: 20px; 
+            background: linear-gradient(135deg, #A61396 0%, #681DD6 100%); 
+            color: white; 
+            /* 🛠️ 우측 로고 배치를 위한 Flexbox 스타일 추가 */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+        .sidebar-header .header-text { flex: 1; }
+        /* 🛠️ 로고 이미지 스타일 (크기는 원하시는 대로 조절 가능합니다) */
+        .sidebar-header .header-logo {
+            width: 60px;
+            height: auto;
+            object-fit: contain;
+        }
         .sidebar-header p { line-height: 1.5; margin-top: 5px; }
         .sidebar-header h1 { font-size: 20px; margin-bottom: 5px; }
         
@@ -76,9 +92,13 @@
     <div class="container">
         <div class="sidebar">
             <div class="sidebar-header">
-                <h1>🍾 전국 콜키지프리 맛집 지도</h1>
-                <p>술을 사랑하는 여러분을 위해<br>요즘이술이 준비했습니다 💜</p>
-                <p style="font-size: 11px; margin-top: 8px; opacity: 0.85;">문의사항: 📩 yosool@chosunbiz.com</p>
+                <div class="header-text">
+                    <h1>🍾 전국 콜키지프리 맛집 지도</h1>
+                    <p>술을 사랑하는 여러분을 위해<br>요즘이술이 준비했습니다 💜</p>
+                    <p style="font-size: 11px; margin-top: 8px; opacity: 0.85;">문의사항은 yosool@chosunbiz.com</p>
+                </div>
+                <!-- 🛠️ 로고 이미지 태그 추가 (src 부분에 실제 이미지 주소를 넣어주세요) -->
+                <img class="header-logo" src="요즘이술 로고 65.png" alt="요즘이술 로고">
             </div>
             
             <!-- 2단계 지역 필터 영역 -->
