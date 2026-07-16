@@ -52,7 +52,12 @@
         .restaurant-item { padding: 20px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s; }
         .restaurant-item:hover { background: #f1f3f4; }
         .restaurant-item h3 { font-size: 16px; margin-bottom: 5px; color: #333; }
-        .restaurant-item p { font-size: 13px; color: #666; margin-bottom: 5px; }
+        .restaurant-item p { font-size: 13px; color: #666; margin-bottom: 3px; }
+        
+        /* 🛠️ 주소 밑에 들어갈 대표 메뉴 스타일 */
+        .restaurant-item .menu-info { font-size: 12px; color: #888; margin-bottom: 8px; display: flex; align-items: center; gap: 4px; }
+        .restaurant-item .menu-info::before { content: "🍴"; font-size: 11px; }
+
         .badge { display: inline-block; padding: 3px 6px; font-size: 11px; background: #e8f0fe; color: #4285F4; border-radius: 4px; font-weight: bold; }
         
         .map-container { flex: 1; height: 100%; background: #e5e3df; }
@@ -110,18 +115,17 @@
     </div>
 
     <script>
-        // 🛠️ 전국 맛집 데이터 목록 (city 값을 버튼 조건값과 정확히 일치시킵니다)
+        // 🛠️ "menu" 데이터 속성 추가
         const restaurantData = [
-            { name: "트라가 역삼점", address: "서울 강남구 테헤란로25길 46", info: "네이버 예약 고객 콜키지 1병 프리", city: "서울특별시", region: "강남구" },
-            { name: "고우가 여의도점", address: "서울 영등포구 여의대로 24", info: "콜키지 프리", city: "서울특별시", region: "영등포구" },
-            { name: "우수", address: "서울특별시 마포구 백범로 199", info: "콜키지 프리 및 무제한 주차장 완비", city: "서울특별시", region: "마포구" },
-            { name: "메르시", address: "서울특별시 서초구 논현로 나길 10", info: "와인, 위스키 콜키지 프리, 글라스 차지 1잔당 3,000원", city: "서울특별시", region: "서초구" },
-            { name: "효 정자동본점", address: "경기도 성남시 분당구 성남대로 275", info: "-", city: "경기도", region: "분당구" },
-            { name: "양마담 방촌양고기 분당직영점", address: "경기도 성남시 분당구 정자일로 162", city: "경기도", region: "분당구", info: "-" },
-            { name: "제주클래식 분당점", address: "경기도 성남시 분당구 정자일로 240", city: "경기도", region: "분당구", info: "-" },
-            { name: "인천 송도 갈비", address: "인천 연수구 인천타워대로 251", info: "와인 콜키지 프리", city: "인천광역시", region: "연수구" },
-            { name: "부산 해운대 소문난암소갈비", address: "부산 해운대구 중동2로10번길 30-10", info: "콜키지 병당 프리 이벤트 중", city: "부산광역시", region: "해운대구" }
-            // 추후 대구, 대전, 광주 등의 맛집을 추가할 때도 city를 각각 "대구광역시", "대전광역시", "광주광역시" 등으로 채워 넣으시면 됩니다.
+            { name: "트라가 역삼점", address: "서울 강남구 테헤란로25길 46", menu: "스페인 요리 (빠에야, 감바스)", info: "네이버 예약 고객 콜키지 1병 프리", city: "서울특별시", region: "강남구" },
+            { name: "고우가 여의도점", address: "서울 영등포구 여의대로 24", menu: "한우 오마카세", info: "콜키지 프리", city: "서울특별시", region: "영등포구" },
+            { name: "우수", address: "서울특별시 마포구 백범로 199", menu: "소고기 구이, 육회", info: "콜키지 프리 및 무제한 주차장 완비", city: "서울특별시", region: "마포구" },
+            { name: "메르시", address: "서울특별시 서초구 논현로 나길 10", menu: "슈바인학센, 프랑스 요리", info: "와인, 위스키 콜키지 프리, 글라스 차지 1잔당 3,000원", city: "서울특별시", region: "서초구" },
+            { name: "효 정자동본점", address: "경기도 성남시 분당구 성남대로 275", menu: "스키야키, 세이로무시", info: "-", city: "경기도", region: "분당구" },
+            { name: "양마담 방촌양고기 분당직영점", address: "경기도 성남시 분당구 정자일로 162", menu: "양갈비, 양꼬치", info: "-", city: "경기도", region: "분당구" },
+            { name: "제주클래식 분당점", address: "경기도 성남시 분당구 정자일로 240", menu: "제주 흑돼지 구이", info: "-", city: "경기도", region: "분당구" },
+            { name: "인천 송도 갈비", address: "인천 연수구 인천타워대로 251", menu: "숯불 갈비, 한정식", info: "와인 콜키지 프리", city: "인천광역시", region: "연수구" },
+            { name: "부산 해운대 소문난암소갈비", address: "부산 해운대구 중동2로10번길 30-10", menu: "한우 양념갈비, 감자사리", info: "콜키지 병당 프리 이벤트 중", city: "부산광역시", region: "해운대구" }
         ];
 
         // 현재 선택된 필터 상태 관리
@@ -151,14 +155,12 @@
                 subSection.style.display = 'block';
                 document.getElementById('sub-filter-label').innerText = `${city} 세부 지역`;
                 
-                // 해당 도시에 실제로 존재하는 구(region) 목록만 추출하여 중복 제거
                 const regions = [...new Set(
                     restaurantData
                         .filter(store => store.city === city)
                         .map(store => store.region)
                 )].sort();
 
-                // 2단계 구 버튼 생성 (해당 지역에 등록된 데이터가 없을 경우 '등록된 지역 없음'을 보여줌)
                 regionContainer.innerHTML = `<button class="filter-btn active" onclick="selectRegion('all', this)">전체</button>`;
                 
                 if (regions.length === 0) {
@@ -197,9 +199,14 @@
                     const listItem = document.createElement('div');
                     listItem.className = 'restaurant-item';
                     listItem.onclick = () => changeMap(store.address + " " + store.name);
+                    
+                    // 🛠️ 대표 메뉴 정보 출력 (데이터가 없을 경우 예외 처리)
+                    const menuText = store.menu ? store.menu : "정보 없음";
+
                     listItem.innerHTML = `
                         <h3>${store.name}</h3>
                         <p>${store.address}</p>
+                        <div class="menu-info">${menuText}</div>
                         <span class="badge">${store.info}</span>
                     `;
                     listContainer.appendChild(listItem);
