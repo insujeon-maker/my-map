@@ -130,32 +130,57 @@
         let currentCity = 'all';
         let currentRegion = 'all';
 
-        // 1. 구글 스프레드시트 CSV 데이터를 JS 객체 배열로 변환하는 함수
-        function parseCSV(csvText) {
-            const lines = csvText.split('\n');
-            if (lines.length === 0) return [];
-            
-            // 첫 번째 줄에서 헤더(키값) 추출 (양끝 공백 및 눈에 안보이는 캐리지 리턴(\r) 제거)
-            const headers = lines[0].split(',').map(header => header.trim().replace(/\r/g, ''));
-            const result = [];
+        // 1. 구글 스프레드시트 CSV 데이터를 JS 객체 배열로 변환하는 함수 (안정적인 버전으로 수정)
+function parseCSV(csvText) {
+    const lines = [];
+    let row = [""];
+    let inQuotes = false;
 
-            for (let i = 1; i < lines.length; i++) {
-                if (!lines[i].trim()) continue;
-                
-                // 따옴표 안의 쉼표(,)는 보존하고 열을 나누기 위한 매칭 정규식
-                const matches = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || lines[i].split(',');
-                const obj = {};
-                
-                headers.forEach((header, index) => {
-                    let value = matches[index] ? matches[index].trim().replace(/\r/g, '') : '';
-                    // 값 좌우에 붙어 있는 큰따옴표(") 제거
-                    value = value.replace(/^"(.*)"$/, '$1');
-                    obj[header] = value;
-                });
-                result.push(obj);
+    // CSV 파일의 문자열을 한 글자씩 안전하게 읽어서 처리하는 로직
+    for (let i = 0; i < csvText.length; i++) {
+        const c = csvText[i];
+        const next = csvText[i + 1];
+
+        if (c === '"') {
+            if (inQuotes && next === '"') { 
+                row[row.length - 1] += '"'; 
+                i++; 
+            } else { 
+                inQuotes = !inQuotes; 
             }
-            return result;
+        } else if (c === ',' && !inQuotes) {
+            row.push('');
+        } else if ((c === '\r' || c === '\n') && !inQuotes) {
+            if (c === '\r' && next === '\n') { i++; }
+            lines.push(row);
+            row = [''];
+        } else {
+            row[row.length - 1] += c;
         }
+    }
+    if (row.length > 1 || row[0] !== '') {
+        lines.push(row);
+    }
+
+    if (lines.length === 0) return [];
+
+    // 첫 번째 줄에서 헤더(키값) 추출 및 공백 제거
+    const headers = lines[0].map(header => header.trim());
+    const result = [];
+
+    for (let i = 1; i < lines.length; i++) {
+        const values = lines[i];
+        if (values.length < headers.length) continue; // 데이터가 온전하지 않은 행 패스
+        
+        const obj = {};
+        headers.forEach((header, index) => {
+            let val = values[index] ? values[index].trim() : '';
+            obj[header] = val;
+        });
+        result.push(obj);
+    }
+    return result;
+}
 
         // 2. 외부 데이터를 가져와 초기 레이아웃을 뿌려주는 비동기 메인 함수
         async function initApp() {
