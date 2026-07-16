@@ -87,23 +87,23 @@
                     <div class="filter-label">지역 (시/도)</div>
                     <div class="filter-container" id="city-container">
                         <button class="filter-btn active" onclick="selectCity('all', this)">전체</button>
-                        <button class="filter-btn" onclick="selectCity('서울특별시', this)">서울</button>
-                        <button class="filter-btn" onclick="selectCity('부산광역시', this)">부산</button>
-                        <button class="filter-btn" onclick="selectCity('대구광역시', this)">대구</button>
-                        <button class="filter-btn" onclick="selectCity('인천광역시', this)">인천</button>
-                        <button class="filter-btn" onclick="selectCity('광주광역시', this)">광주</button>
-                        <button class="filter-btn" onclick="selectCity('대전광역시', this)">대전</button>
-                        <button class="filter-btn" onclick="selectCity('울산광역시', this)">울산</button>
-                        <button class="filter-btn" onclick="selectCity('세종특별자치시', this)">세종</button>
-                        <button class="filter-btn" onclick="selectCity('경기도', this)">경기</button>
-                        <button class="filter-btn" onclick="selectCity('강원특별자치도', this)">강원</button>
-                        <button class="filter-btn" onclick="selectCity('충청북도', this)">충북</button>
-                        <button class="filter-btn" onclick="selectCity('충청남도', this)">충남</button>
-                        <button class="filter-btn" onclick="selectCity('전북특별자치도', this)">전북</button>
-                        <button class="filter-btn" onclick="selectCity('전라남도', this)">전남</button>
-                        <button class="filter-btn" onclick="selectCity('경상북도', this)">경북</button>
-                        <button class="filter-btn" onclick="selectCity('경상남도', this)">경남</button>
-                        <button class="filter-btn" onclick="selectCity('제주특별자치도', this)">제주</button>
+                        <button class="filter-btn" onclick="selectCity('서울', this)">서울</button>
+                        <button class="filter-btn" onclick="selectCity('부산', this)">부산</button>
+                        <button class="filter-btn" onclick="selectCity('대구', this)">대구</button>
+                        <button class="filter-btn" onclick="selectCity('인천', this)">인천</button>
+                        <button class="filter-btn" onclick="selectCity('광주', this)">광주</button>
+                        <button class="filter-btn" onclick="selectCity('대전', this)">대전</button>
+                        <button class="filter-btn" onclick="selectCity('울산', this)">울산</button>
+                        <button class="filter-btn" onclick="selectCity('세종', this)">세종</button>
+                        <button class="filter-btn" onclick="selectCity('경기', this)">경기</button>
+                        <button class="filter-btn" onclick="selectCity('강원', this)">강원</button>
+                        <button class="filter-btn" onclick="selectCity('충북', this)">충북</button>
+                        <button class="filter-btn" onclick="selectCity('충남', this)">충남</button>
+                        <button class="filter-btn" onclick="selectCity('전북', this)">전북</button>
+                        <button class="filter-btn" onclick="selectCity('전남', this)">전남</button>
+                        <button class="filter-btn" onclick="selectCity('경북', this)">경북</button>
+                        <button class="filter-btn" onclick="selectCity('경남', this)">경남</button>
+                        <button class="filter-btn" onclick="selectCity('제주', this)">제주</button>
                     </div>
                 </div>
 
@@ -123,66 +123,73 @@
     </div>
 
     <script>
-        // 🔗 공유해주신 구글 스프레드시트 웹 게시 CSV 링크 적용 완료
+        // 🔗 구글 스프레드시트 웹 게시 CSV 링크
         const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQJNWvQO4xEdc6oYle5wIXjLXIUYeqmXDzB-k9qNDgPtNTSTEPTjMvkUg5HQxttVViWfyH4UryVtxJ/pub?gid=0&single=true&output=csv";
 
         let restaurantData = [];
         let currentCity = 'all';
         let currentRegion = 'all';
 
-        // 1. 구글 스프레드시트 CSV 데이터를 JS 객체 배열로 변환하는 함수 (안정적인 버전으로 수정)
-function parseCSV(csvText) {
-    const lines = [];
-    let row = [""];
-    let inQuotes = false;
+        // 1. 구글 스프레드시트 CSV 데이터를 JS 객체 배열로 변환하는 함수
+        function parseCSV(csvText) {
+            const lines = [];
+            let row = [""];
+            let inQuotes = false;
 
-    // CSV 파일의 문자열을 한 글자씩 안전하게 읽어서 처리하는 로직
-    for (let i = 0; i < csvText.length; i++) {
-        const c = csvText[i];
-        const next = csvText[i + 1];
+            for (let i = 0; i < csvText.length; i++) {
+                const c = csvText[i];
+                const next = csvText[i + 1];
 
-        if (c === '"') {
-            if (inQuotes && next === '"') { 
-                row[row.length - 1] += '"'; 
-                i++; 
-            } else { 
-                inQuotes = !inQuotes; 
+                if (c === '"') {
+                    if (inQuotes && next === '"') { 
+                        row[row.length - 1] += '"'; 
+                        i++; 
+                    } else { 
+                        inQuotes = !inQuotes; 
+                    }
+                } else if (c === ',' && !inQuotes) {
+                    row.push('');
+                } else if ((c === '\r' || c === '\n') && !inQuotes) {
+                    if (c === '\r' && next === '\n') { i++; }
+                    lines.push(row);
+                    row = [''];
+                } else {
+                    row[row.length - 1] += c;
+                }
             }
-        } else if (c === ',' && !inQuotes) {
-            row.push('');
-        } else if ((c === '\r' || c === '\n') && !inQuotes) {
-            if (c === '\r' && next === '\n') { i++; }
-            lines.push(row);
-            row = [''];
-        } else {
-            row[row.length - 1] += c;
+            if (row.length > 1 || row[0] !== '') {
+                lines.push(row);
+            }
+
+            if (lines.length === 0) return [];
+
+            const headers = lines[0].map(header => header.trim());
+            const result = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i];
+                if (values.length < headers.length) continue;
+                
+                const obj = {};
+                headers.forEach((header, index) => {
+                    let val = values[index] ? values[index].trim() : '';
+                    obj[header] = val;
+                });
+                result.push(obj);
+            }
+            return result;
         }
-    }
-    if (row.length > 1 || row[0] !== '') {
-        lines.push(row);
-    }
 
-    if (lines.length === 0) return [];
+        // 2. 두 시/도 명칭이 일치하는지 비교하는 헬퍼 함수 (예: "서울" === "서울특별시" 둘 다 일치처리)
+        function isMatchingCity(filterCity, dataCity) {
+            if (!dataCity) return false;
+            // 앞의 2글자만 비교 (예: '서울' vs '서울특별시', '경기' vs '경기도')
+            const fSub = filterCity.substring(0, 2);
+            const dSub = dataCity.substring(0, 2);
+            return fSub === dSub;
+        }
 
-    // 첫 번째 줄에서 헤더(키값) 추출 및 공백 제거
-    const headers = lines[0].map(header => header.trim());
-    const result = [];
-
-    for (let i = 1; i < lines.length; i++) {
-        const values = lines[i];
-        if (values.length < headers.length) continue; // 데이터가 온전하지 않은 행 패스
-        
-        const obj = {};
-        headers.forEach((header, index) => {
-            let val = values[index] ? values[index].trim() : '';
-            obj[header] = val;
-        });
-        result.push(obj);
-    }
-    return result;
-}
-
-        // 2. 외부 데이터를 가져와 초기 레이아웃을 뿌려주는 비동기 메인 함수
+        // 3. 외부 데이터를 가져와 초기 레이아웃을 뿌려주는 비동기 메인 함수
         async function initApp() {
             const listContainer = document.getElementById('list-container');
             listContainer.innerHTML = "<div style='padding: 20px; color: #888; font-size: 14px;'>맛집 정보를 불러오는 중입니다...</div>";
@@ -194,7 +201,7 @@ function parseCSV(csvText) {
                 const csvText = await response.text();
                 restaurantData = parseCSV(csvText);
                 
-                // 데이터 정렬 완료 후 전체 리스트 초기 노출
+                // 전체 리스트 초기 노출
                 displayList('all', 'all');
             } catch (error) {
                 console.error("데이터 로드 실패:", error);
@@ -225,9 +232,10 @@ function parseCSV(csvText) {
                 subSection.style.display = 'block';
                 document.getElementById('sub-filter-label').innerText = `${city} 세부 지역`;
                 
+                // 유연한 명칭 비교를 적용하여 구(Region) 필터링 목록 추출
                 const regions = [...new Set(
                     restaurantData
-                        .filter(store => store.city === city)
+                        .filter(store => isMatchingCity(city, store.city))
                         .map(store => store.region)
                 )].sort();
 
@@ -262,7 +270,7 @@ function parseCSV(csvText) {
             listContainer.innerHTML = ""; 
 
             restaurantData.forEach((store) => {
-                const matchCity = (cityFilter === 'all' || store.city === cityFilter);
+                const matchCity = (cityFilter === 'all' || isMatchingCity(cityFilter, store.city));
                 const matchRegion = (regionFilter === 'all' || store.region === regionFilter);
 
                 if (matchCity && matchRegion) {
@@ -271,8 +279,6 @@ function parseCSV(csvText) {
                     listItem.onclick = () => changeMap(store.address + " " + store.name);
                     
                     const menuText = store.menu ? store.menu : "정보 없음";
-                    
-                    // 🛠️ 카테고리 정보 가져오기 (없으면 공란 또는 기본값)
                     const categoryTag = store.category ? `<span class="restaurant-category">${store.category}</span>` : "";
 
                     listItem.innerHTML = `
