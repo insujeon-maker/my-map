@@ -13,15 +13,12 @@
             padding: 20px; 
             background: linear-gradient(135deg, #A61396 0%, #681DD6 100%); 
             color: white; 
-            /* 🛠️ 우측 로고 배치를 위한 Flexbox 스타일 */
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 15px;
         }
         .sidebar-header .header-text { flex: 1; }
-        
-        /* 🛠️ 로고 이미지 스타일 */
         .sidebar-header .header-logo {
             width: 65px;
             height: auto;
@@ -30,7 +27,7 @@
         .sidebar-header p { line-height: 1.5; margin-top: 5px; }
         .sidebar-header h1 { font-size: 20px; margin-bottom: 5px; }
         
-        /* 🛠️ 2단계 필터 컨테이너 */
+        /* 필터 영역 */
         .filter-section {
             background: #f8f9fa;
             border-bottom: 1px solid #eee;
@@ -45,22 +42,21 @@
             color: #868e96;
             font-weight: bold;
             text-transform: uppercase;
+            margin-bottom: 6px;
         }
 
-        /* 버튼 컨테이너 (스크롤 제한) */
         .filter-container { 
             display: flex; 
             gap: 8px; 
             flex-wrap: wrap; 
-            max-height: 85px;         /* 3줄 정도 높이로 제한 */
-            overflow-y: auto;          /* 넘치면 스크롤 */
+            max-height: 85px;
+            overflow-y: auto;
         }
         
         .filter-btn { padding: 6px 12px; font-size: 12px; border: 1px solid #ced4da; background: white; border-radius: 20px; cursor: pointer; font-weight: bold; color: #495057; transition: all 0.2s; }
         .filter-btn:hover { background: #e9ecef; }
         .filter-btn.active { background: #681DD6; color: white; border-color: #681DD6; }
         
-        /* 하위 구 필터 영역 스타일 */
         #sub-filter-section {
             border-top: 1px dashed #dee2e6;
             padding-top: 10px;
@@ -70,16 +66,11 @@
         .restaurant-item { padding: 20px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s; }
         .restaurant-item:hover { background: #f1f3f4; }
         
-        /* 🛠️ 타이틀 영역 (매장명 + 카테고리 가로 정렬) */
         .restaurant-title-area { display: flex; align-items: baseline; gap: 6px; margin-bottom: 5px; }
         .restaurant-item h3 { font-size: 16px; color: #333; }
-        
-        /* 🛠️ 매장명 옆 대분류 카테고리 스타일 */
         .restaurant-category { font-size: 12px; color: #D28E00; font-weight: bold; background: #FFF4CC; padding: 2px 6px; border-radius: 3px; }
 
         .restaurant-item p { font-size: 13px; color: #666; margin-bottom: 3px; }
-        
-        /* 주소 밑에 들어갈 대표 메뉴 스타일 */
         .restaurant-item .menu-info { font-size: 12px; color: #888; margin-bottom: 8px; display: flex; align-items: center; gap: 4px; }
         .restaurant-item .menu-info::before { content: "🍴"; font-size: 11px; }
 
@@ -139,19 +130,39 @@
         </div>
         
         <div class="map-container">
-            <iframe id="google-map" src="https://maps.google.com/maps?q=강남역&t=&z=15&ie=UTF-8&iwloc=&output=embed"></iframe>
+            <iframe id="google-map" src="https://maps.google.com/maps?q=대한민국&t=&z=7&ie=UTF-8&iwloc=&output=embed"></iframe>
         </div>
     </div>
 
     <script>
-        // 🔗 구글 스프레드시트 웹 게시 CSV 링크
         const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQJNWvQO4xEdc6oYle5wIXjLXIUYeqmXDzB-k9qNDgPtNTSTEPTjMvkUg5HQxttVViWfyH4UryVtxJ/pub?gid=0&single=true&output=csv";
 
         let restaurantData = [];
         let currentCity = 'all';
         let currentRegion = 'all';
 
-        // 1. 구글 스프레드시트 CSV 데이터를 JS 객체 배열로 변환하는 함수
+        // 시/도 정식 명칭 매핑 (검색 정확도 향상용)
+        const cityFullNameMap = {
+            '서울': '서울특별시',
+            '부산': '부산광역시',
+            '대구': '대구광역시',
+            '인천': '인천광역시',
+            '광주': '광주광역시',
+            '대전': '대전광역시',
+            '울산': '울산광역시',
+            '세종': '세종특별자치시',
+            '경기': '경기도',
+            '강원': '강원도',
+            '충북': '충청북도',
+            '충남': '충청남도',
+            '전북': '전라북도',
+            '전남': '전라남도',
+            '경북': '경상북도',
+            '경남': '경상남도',
+            '제주': '제주특별자치도'
+        };
+
+        // CSV 데이터 변환 함수
         function parseCSV(csvText) {
             const lines = [];
             let row = [""];
@@ -201,7 +212,7 @@
             return result;
         }
 
-        // 2. 두 시/도 명칭이 일치하는지 비교하는 헬퍼 함수
+        // 시/도 비교 함수
         function isMatchingCity(filterCity, dataCity) {
             if (!dataCity) return false;
             const fSub = filterCity.substring(0, 2);
@@ -209,7 +220,7 @@
             return fSub === dSub;
         }
 
-        // 3. 외부 데이터를 가져와 초기 레이아웃을 뿌려주는 비동기 메인 함수
+        // 초기화
         async function initApp() {
             const listContainer = document.getElementById('list-container');
             listContainer.innerHTML = "<div style='padding: 20px; color: #888; font-size: 14px;'>맛집 정보를 불러오는 중입니다...</div>";
@@ -221,20 +232,26 @@
                 const csvText = await response.text();
                 restaurantData = parseCSV(csvText);
                 
-                // 전체 리스트 초기 노출
                 displayList('all', 'all');
+
+                // 접속 시 첫 번째 맛집 위치로 이동
+                if (restaurantData.length > 0) {
+                    const firstStore = restaurantData[0];
+                    changeMap(firstStore.address + " " + firstStore.name, 16);
+                }
             } catch (error) {
                 console.error("데이터 로드 실패:", error);
                 listContainer.innerHTML = "<div style='padding: 20px; color: #e03131; font-size: 14px;'>데이터 로드에 실패했습니다. 스프레드시트 설정을 확인해 주세요.</div>";
             }
         }
 
-        function changeMap(keyword) {
-            const mapUrl = `https://maps.google.com/maps?q=${encodeURIComponent(keyword)}&t=&z=16&ie=UTF-8&iwloc=&output=embed`;
+        // 지도 키워드 및 줌 레벨 변경 (zoom default = 16)
+        function changeMap(keyword, zoom = 16) {
+            const mapUrl = `https://maps.google.com/maps?q=${encodeURIComponent(keyword)}&t=&z=${zoom}&ie=UTF-8&iwloc=&output=embed`;
             document.getElementById('google-map').src = mapUrl;
         }
 
-        // 광역시/도 선택 시 실행되는 함수
+        // 시/도 선택 함수
         function selectCity(city, buttonElement) {
             document.querySelectorAll('#city-container .filter-btn').forEach(btn => btn.classList.remove('active'));
             buttonElement.classList.add('active');
@@ -248,6 +265,10 @@
             if (city === 'all') {
                 subSection.style.display = 'none';
                 displayList('all', 'all');
+
+                if (restaurantData.length > 0) {
+                    changeMap(restaurantData[0].address + " " + restaurantData[0].name, 16);
+                }
             } else {
                 subSection.style.display = 'block';
                 document.getElementById('sub-filter-label').innerText = `${city} 세부 지역`;
@@ -269,16 +290,28 @@
                 }
 
                 displayList(city, 'all');
+
+                // 💡 시/도 전체 보기 (줌 레벨 11~12로 지정하여 시/도 전체 축척 노출)
+                const targetKeyword = cityFullNameMap[city] || city;
+                changeMap(targetKeyword, 12);
             }
         }
 
-        // 하위 구/군/시 선택 시 실행되는 함수
+        // 세부 구/시 선택 함수
         function selectRegion(region, buttonElement) {
             document.querySelectorAll('#region-container .filter-btn').forEach(btn => btn.classList.remove('active'));
             buttonElement.classList.add('active');
 
             currentRegion = region;
             displayList(currentCity, currentRegion);
+
+            if (region === 'all') {
+                const targetKeyword = cityFullNameMap[currentCity] || currentCity;
+                changeMap(targetKeyword, 12);
+            } else {
+                // 💡 세부 구/시 보기 (줌 레벨 14)
+                changeMap(`${currentCity} ${region}`, 14);
+            }
         }
 
         // 리스트 필터링 출력
@@ -296,15 +329,13 @@
                 if (matchCity && matchRegion) {
                     const listItem = document.createElement('div');
                     listItem.className = 'restaurant-item';
-                    listItem.onclick = () => changeMap(store.address + " " + store.name);
+                    listItem.onclick = () => changeMap(store.address + " " + store.name, 16);
                     
-                    // 🍴 메뉴 정보가 없거나 대시(-) 혹은 빈 값일 때 깔끔하게 숨김 처리
                     const hasMenu = store.menu && store.menu.trim() !== "" && store.menu !== "-";
                     const menuHtml = hasMenu ? `<div class="menu-info">${store.menu}</div>` : "";
                     
                     const categoryTag = store.category ? `<span class="restaurant-category">${store.category}</span>` : "";
 
-                    // 🍾 콜키지 혜택 정보가 없거나 대시(-) 일 때는 뱃지를 띄우지 않음
                     const hasInfo = store.info && store.info.trim() !== "" && store.info !== "-";
                     const badgeHtml = hasInfo ? `<span class="badge">${store.info}</span>` : "";
 
@@ -322,7 +353,6 @@
             });
         }
 
-        // 페이지 시작 시 스프레드시트 데이터 불러오기 시작
         window.onload = initApp;
     </script>
 </body>
