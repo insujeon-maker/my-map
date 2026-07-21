@@ -98,24 +98,24 @@
                 <div>
                     <div class="filter-label">지역 (시/도)</div>
                     <div class="filter-container" id="city-container">
-                        <button class="filter-btn active" onclick="selectCity('all', this)">전체</button>
-                        <button class="filter-btn" onclick="selectCity('서울', this)">서울</button>
-                        <button class="filter-btn" onclick="selectCity('부산', this)">부산</button>
-                        <button class="filter-btn" onclick="selectCity('대구', this)">대구</button>
-                        <button class="filter-btn" onclick="selectCity('인천', this)">인천</button>
-                        <button class="filter-btn" onclick="selectCity('광주', this)">광주</button>
-                        <button class="filter-btn" onclick="selectCity('대전', this)">대전</button>
-                        <button class="filter-btn" onclick="selectCity('울산', this)">울산</button>
-                        <button class="filter-btn" onclick="selectCity('세종', this)">세종</button>
-                        <button class="filter-btn" onclick="selectCity('경기', this)">경기</button>
-                        <button class="filter-btn" onclick="selectCity('강원', this)">강원</button>
-                        <button class="filter-btn" onclick="selectCity('충북', this)">충북</button>
-                        <button class="filter-btn" onclick="selectCity('충남', this)">충남</button>
-                        <button class="filter-btn" onclick="selectCity('전북', this)">전북</button>
-                        <button class="filter-btn" onclick="selectCity('전남', this)">전남</button>
-                        <button class="filter-btn" onclick="selectCity('경북', this)">경북</button>
-                        <button class="filter-btn" onclick="selectCity('경남', this)">경남</button>
-                        <button class="filter-btn" onclick="selectCity('제주', this)">제주</button>
+                        <button class="filter-btn active" data-city="all" onclick="selectCity('all', this)">전체</button>
+                        <button class="filter-btn" data-city="서울" onclick="selectCity('서울', this)">서울</button>
+                        <button class="filter-btn" data-city="부산" onclick="selectCity('부산', this)">부산</button>
+                        <button class="filter-btn" data-city="대구" onclick="selectCity('대구', this)">대구</button>
+                        <button class="filter-btn" data-city="인천" onclick="selectCity('인천', this)">인천</button>
+                        <button class="filter-btn" data-city="광주" onclick="selectCity('광주', this)">광주</button>
+                        <button class="filter-btn" data-city="대전" onclick="selectCity('대전', this)">대전</button>
+                        <button class="filter-btn" data-city="울산" onclick="selectCity('울산', this)">울산</button>
+                        <button class="filter-btn" data-city="세종" onclick="selectCity('세종', this)">세종</button>
+                        <button class="filter-btn" data-city="경기" onclick="selectCity('경기', this)">경기</button>
+                        <button class="filter-btn" data-city="강원" onclick="selectCity('강원', this)">강원</button>
+                        <button class="filter-btn" data-city="충북" onclick="selectCity('충북', this)">충북</button>
+                        <button class="filter-btn" data-city="충남" onclick="selectCity('충남', this)">충남</button>
+                        <button class="filter-btn" data-city="전북" onclick="selectCity('전북', this)">전북</button>
+                        <button class="filter-btn" data-city="전남" onclick="selectCity('전남', this)">전남</button>
+                        <button class="filter-btn" data-city="경북" onclick="selectCity('경북', this)">경북</button>
+                        <button class="filter-btn" data-city="경남" onclick="selectCity('경남', this)">경남</button>
+                        <button class="filter-btn" data-city="제주" onclick="selectCity('제주', this)">제주</button>
                     </div>
                 </div>
 
@@ -232,6 +232,9 @@
                 const csvText = await response.text();
                 restaurantData = parseCSV(csvText);
                 
+                // 시/도 버튼 개수 업데이트
+                updateCityButtonCounts();
+
                 displayList('all', 'all');
 
                 // 접속 시 첫 번째 맛집 위치로 이동
@@ -245,7 +248,25 @@
             }
         }
 
-        // 지도 키워드 및 줌 레벨 변경 (zoom default = 16)
+        // 💡 시/도 버튼에 (숫자) 카운트 추가 함수
+        function updateCityButtonCounts() {
+            const cityButtons = document.querySelectorAll('#city-container .filter-btn');
+            
+            cityButtons.forEach(btn => {
+                const cityKey = btn.getAttribute('data-city');
+                let count = 0;
+
+                if (cityKey === 'all') {
+                    count = restaurantData.length;
+                    btn.innerText = `전체(${count})`;
+                } else {
+                    count = restaurantData.filter(store => isMatchingCity(cityKey, store.city)).length;
+                    btn.innerText = `${cityKey}(${count})`;
+                }
+            });
+        }
+
+        // 지도 키워드 및 줌 레벨 변경
         function changeMap(keyword, zoom = 16) {
             const mapUrl = `https://maps.google.com/maps?q=${encodeURIComponent(keyword)}&t=&z=${zoom}&ie=UTF-8&iwloc=&output=embed`;
             document.getElementById('google-map').src = mapUrl;
@@ -273,25 +294,31 @@
                 subSection.style.display = 'block';
                 document.getElementById('sub-filter-label').innerText = `${city} 세부 지역`;
                 
+                // 선택된 시/도의 맛집 데이터 필터링
+                const cityStores = restaurantData.filter(store => isMatchingCity(city, store.city));
+                const totalCityCount = cityStores.length;
+
+                // 세부 지역 목록 추출 및 정렬
                 const regions = [...new Set(
-                    restaurantData
-                        .filter(store => isMatchingCity(city, store.city))
-                        .map(store => store.region ? store.region.trim() : "")
+                    cityStores.map(store => store.region ? store.region.trim() : "")
                 )].filter(reg => reg && reg !== "-").sort();
 
-                regionContainer.innerHTML = `<button class="filter-btn active" onclick="selectRegion('all', this)">전체</button>`;
+                // '전체(총 개수)' 버튼 생성
+                regionContainer.innerHTML = `<button class="filter-btn active" onclick="selectRegion('all', this)">전체(${totalCityCount})</button>`;
                 
                 if (regions.length === 0) {
-                    regionContainer.innerHTML = `<span style="font-size: 12px; color: #999; padding-left: 5px;">등록된 맛집 정보가 아직 없습니다.</span>`;
+                    regionContainer.innerHTML += `<span style="font-size: 12px; color: #999; padding-left: 5px;">등록된 맛집 정보가 아직 없습니다.</span>`;
                 } else {
+                    // 💡 세부 구/시별 맛집 개수를 계산하여 버튼 생성
                     regions.forEach(reg => {
-                        regionContainer.innerHTML += `<button class="filter-btn" onclick="selectRegion('${reg}', this)">${reg}</button>`;
+                        const regCount = cityStores.filter(store => store.region && store.region.trim() === reg).length;
+                        regionContainer.innerHTML += `<button class="filter-btn" onclick="selectRegion('${reg}', this)">${reg}(${regCount})</button>`;
                     });
                 }
 
                 displayList(city, 'all');
 
-                // 💡 시/도 전체 보기 (줌 레벨 11~12로 지정하여 시/도 전체 축척 노출)
+                // 시/도 전체 화면 전환
                 const targetKeyword = cityFullNameMap[city] || city;
                 changeMap(targetKeyword, 12);
             }
@@ -309,7 +336,6 @@
                 const targetKeyword = cityFullNameMap[currentCity] || currentCity;
                 changeMap(targetKeyword, 12);
             } else {
-                // 💡 세부 구/시 보기 (줌 레벨 14)
                 changeMap(`${currentCity} ${region}`, 14);
             }
         }
