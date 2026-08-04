@@ -55,28 +55,28 @@
 
       <!-- 2단계 지역 필터 영역 -->
       <div class="filter-section">
-        <!-- 1단계: 광역시/도 선택 (요청하신 순서로 변경) -->
+        <!-- 1단계: 광역시/도 선택 -->
         <div>
           <div class="filter-label">지역 (시/도)</div>
           <div class="filter-container" id="city-container">
             <button class="filter-btn active" data-city="all" onclick="selectCity('all', this)">전체</button>
-            <button class="filter-btn" data-city="서울" onclick="selectCity('서울', this)">서울</button>
-            <button class="filter-btn" data-city="경기" onclick="selectCity('경기', this)">경기</button>
-            <button class="filter-btn" data-city="부산" onclick="selectCity('부산', this)">부산</button>
-            <button class="filter-btn" data-city="제주" onclick="selectCity('제주', this)">제주</button>
-            <button class="filter-btn" data-city="인천" onclick="selectCity('인천', this)">인천</button>
-            <button class="filter-btn" data-city="대구" onclick="selectCity('대구', this)">대구</button>
-            <button class="filter-btn" data-city="광주" onclick="selectCity('광주', this)">광주</button>
-            <button class="filter-btn" data-city="대전" onclick="selectCity('대전', this)">대전</button>
-            <button class="filter-btn" data-city="울산" onclick="selectCity('울산', this)">울산</button>
-            <button class="filter-btn" data-city="세종" onclick="selectCity('세종', this)">세종</button>
             <button class="filter-btn" data-city="강원" onclick="selectCity('강원', this)">강원</button>
-            <button class="filter-btn" data-city="충북" onclick="selectCity('충북', this)">충북</button>
-            <button class="filter-btn" data-city="충남" onclick="selectCity('충남', this)">충남</button>
-            <button class="filter-btn" data-city="전북" onclick="selectCity('전북', this)">전북</button>
-            <button class="filter-btn" data-city="전남" onclick="selectCity('전남', this)">전남</button>
-            <button class="filter-btn" data-city="경북" onclick="selectCity('경북', this)">경북</button>
+            <button class="filter-btn" data-city="경기" onclick="selectCity('경기', this)">경기</button>
             <button class="filter-btn" data-city="경남" onclick="selectCity('경남', this)">경남</button>
+            <button class="filter-btn" data-city="경북" onclick="selectCity('경북', this)">경북</button>
+            <button class="filter-btn" data-city="광주" onclick="selectCity('광주', this)">광주</button>
+            <button class="filter-btn" data-city="대구" onclick="selectCity('대구', this)">대구</button>
+            <button class="filter-btn" data-city="대전" onclick="selectCity('대전', this)">대전</button>
+            <button class="filter-btn" data-city="부산" onclick="selectCity('부산', this)">부산</button>
+            <button class="filter-btn" data-city="서울" onclick="selectCity('서울', this)">서울</button>
+            <button class="filter-btn" data-city="세종" onclick="selectCity('세종', this)">세종</button>
+            <button class="filter-btn" data-city="울산" onclick="selectCity('울산', this)">울산</button>
+            <button class="filter-btn" data-city="인천" onclick="selectCity('인천', this)">인천</button>
+            <button class="filter-btn" data-city="전남" onclick="selectCity('전남', this)">전남</button>
+            <button class="filter-btn" data-city="전북" onclick="selectCity('전북', this)">전북</button>
+            <button class="filter-btn" data-city="제주" onclick="selectCity('제주', this)">제주</button>
+            <button class="filter-btn" data-city="충남" onclick="selectCity('충남', this)">충남</button>
+            <button class="filter-btn" data-city="충북" onclick="selectCity('충북', this)">충북</button>
           </div>
         </div>
 
@@ -146,18 +146,13 @@
       return result;
     }
 
-    // 시 데이터 불러오기 및 정렬
+    // 시 데이터 불러오기
     async function loadData() {
       try {
         const response = await fetch(sheetUrl);
         const csvText = await response.text();
         
-        // 데이터 파싱
         restaurantData = parseCSV(csvText);
-
-        // 🔥 ID 기준 내림차순 정렬 (높은 숫자가 맨 위로)
-        restaurantData.sort((a, b) => b.id - a.id);
-
         renderList(restaurantData);
       } catch (error) {
         console.error('데이터를 불러오는데 실패했습니다:', error);
