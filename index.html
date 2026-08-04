@@ -1,6 +1,84 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+    <meta charset="UTF-8">
+    <title>전국 콜키지프리 맛집 지도</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html { height: 100%; font-family: 'Malgun Gothic', sans-serif; overflow: hidden; }
+        .container { display: flex; height: 100%; width: 100%; }
+        
+        .sidebar { width: 380px; height: 100%; background: #fff; box-shadow: 2px 0 5px rgba(0,0,0,0.1); z-index: 10; display: flex; flex-direction: column; }
+        .sidebar-header { 
+            padding: 20px; 
+            background: linear-gradient(135deg, #A61396 0%, #681DD6 100%); 
+            color: white; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+        .sidebar-header .header-text { flex: 1; }
+        .sidebar-header .header-logo {
+            width: 65px;
+            height: auto;
+            object-fit: contain;
+        }
+        .sidebar-header p { line-height: 1.5; margin-top: 5px; }
+        .sidebar-header h1 { font-size: 20px; margin-bottom: 5px; }
+        
+        /* 필터 영역 */
+        .filter-section {
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 15px 20px;
+        }
+
+        .filter-label {
+            font-size: 11px;
+            color: #868e96;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .filter-container { 
+            display: flex; 
+            gap: 8px; 
+            flex-wrap: wrap; 
+            max-height: 85px;
+            overflow-y: auto;
+        }
+        
+        .filter-btn { padding: 6px 12px; font-size: 12px; border: 1px solid #ced4da; background: white; border-radius: 20px; cursor: pointer; font-weight: bold; color: #495057; transition: all 0.2s; }
+        .filter-btn:hover { background: #e9ecef; }
+        .filter-btn.active { background: #681DD6; color: white; border-color: #681DD6; }
+        
+        #sub-filter-section {
+            border-top: 1px dashed #dee2e6;
+            padding-top: 10px;
+        }
+
+        .restaurant-list { overflow-y: auto; flex: 1; }
+        .restaurant-item { padding: 20px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s; }
+        .restaurant-item:hover { background: #f1f3f4; }
+        
+        .restaurant-title-area { display: flex; align-items: baseline; gap: 6px; margin-bottom: 5px; }
+        .restaurant-item h3 { font-size: 16px; color: #333; }
+        .restaurant-category { font-size: 12px; color: #D28E00; font-weight: bold; background: #FFF4CC; padding: 2px 6px; border-radius: 3px; }
+
+        .restaurant-item p { font-size: 13px; color: #666; margin-bottom: 3px; }
+        .restaurant-item .menu-info { font-size: 12px; color: #888; margin-bottom: 8px; display: flex; align-items: center; gap: 4px; }
+        .restaurant-item .menu-info::before { content: "🍴"; font-size: 11px; }
+
+        .badge { display: inline-block; padding: 3px 6px; font-size: 11px; background: #f3ebff; color: #681DD6; border-radius: 4px; font-weight: bold; }
+        
+        .map-container { flex: 1; height: 100%; background: #e5e3df; }
+        iframe { width: 100%; height: 100%; border: none; }
+    </style>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>전국 콜키지프리 맛집 지도</title>
@@ -42,6 +120,52 @@
   </style>
 </head>
 <body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="header-text">
+                    <h1>전국 콜키지프리 맛집 지도</h1>
+                    <p>술을 사랑하는 여러분을 위해<br>요즘이술이 준비했습니다 💜</p>
+                    <p style="font-size: 11px; margin-top: 8px; opacity: 0.85;">문의사항은 yosool@chosunbiz.com</p>
+                </div>
+                <img class="header-logo" src="yosool_logo_65.png" alt="요즘이술 로고">
+            </div>
+            
+            <!-- 2단계 지역 필터 영역 -->
+            <div class="filter-section">
+                <!-- 1단계: 광역시/도 선택 -->
+                <div>
+                    <div class="filter-label">지역 (시/도)</div>
+                    <div class="filter-container" id="city-container">
+                        <button class="filter-btn active" data-city="all" onclick="selectCity('all', this)">전체</button>
+                        <button class="filter-btn" data-city="서울" onclick="selectCity('서울', this)">서울</button>
+                        <button class="filter-btn" data-city="부산" onclick="selectCity('부산', this)">부산</button>
+                        <button class="filter-btn" data-city="대구" onclick="selectCity('대구', this)">대구</button>
+                        <button class="filter-btn" data-city="인천" onclick="selectCity('인천', this)">인천</button>
+                        <button class="filter-btn" data-city="광주" onclick="selectCity('광주', this)">광주</button>
+                        <button class="filter-btn" data-city="대전" onclick="selectCity('대전', this)">대전</button>
+                        <button class="filter-btn" data-city="울산" onclick="selectCity('울산', this)">울산</button>
+                        <button class="filter-btn" data-city="세종" onclick="selectCity('세종', this)">세종</button>
+                        <button class="filter-btn" data-city="경기" onclick="selectCity('경기', this)">경기</button>
+                        <button class="filter-btn" data-city="강원" onclick="selectCity('강원', this)">강원</button>
+                        <button class="filter-btn" data-city="충북" onclick="selectCity('충북', this)">충북</button>
+                        <button class="filter-btn" data-city="충남" onclick="selectCity('충남', this)">충남</button>
+                        <button class="filter-btn" data-city="전북" onclick="selectCity('전북', this)">전북</button>
+                        <button class="filter-btn" data-city="전남" onclick="selectCity('전남', this)">전남</button>
+                        <button class="filter-btn" data-city="경북" onclick="selectCity('경북', this)">경북</button>
+                        <button class="filter-btn" data-city="경남" onclick="selectCity('경남', this)">경남</button>
+                        <button class="filter-btn" data-city="제주" onclick="selectCity('제주', this)">제주</button>
+                    </div>
+                </div>
+
+                <!-- 2단계: 세부 구/시 선택 -->
+                <div id="sub-filter-section" style="display: none;">
+                    <div class="filter-label" id="sub-filter-label">세부 지역</div>
+                    <div class="filter-container" id="region-container"></div>
+                </div>
+            </div>
+            
+            <div class="restaurant-list" id="list-container"></div>
   <div class="container">
     <div class="sidebar">
       <div class="sidebar-header">
@@ -49,37 +173,235 @@
           <h1>전국 콜키지프리 맛집 지도</h1>
           <p>술을 사랑하는 여러분을 위해<br>요즘이술이 준비했습니다 💜</p>
           <p style="font-size: 11px; margin-top: 8px; opacity: 0.85;">문의사항은 yosool@chosunbiz.com</p>
-        </div>
+</div>
+        
+        <div class="map-container">
+            <iframe id="google-map" src="https://maps.google.com/maps?q=대한민국&t=&z=7&ie=UTF-8&iwloc=&output=embed"></iframe>
         <img class="header-logo" src="yosool_logo_65.png" alt="요즘이술 로고">
       </div>
 
       <!-- 2단계 지역 필터 영역 -->
       <div class="filter-section">
-        <!-- 1단계: 광역시/도 선택 -->
+        <!-- 1단계: 광역시/도 선택 (요청하신 순서로 변경) -->
         <div>
           <div class="filter-label">지역 (시/도)</div>
           <div class="filter-container" id="city-container">
             <button class="filter-btn active" data-city="all" onclick="selectCity('all', this)">전체</button>
-            <button class="filter-btn" data-city="강원" onclick="selectCity('강원', this)">강원</button>
-            <button class="filter-btn" data-city="경기" onclick="selectCity('경기', this)">경기</button>
-            <button class="filter-btn" data-city="경남" onclick="selectCity('경남', this)">경남</button>
-            <button class="filter-btn" data-city="경북" onclick="selectCity('경북', this)">경북</button>
-            <button class="filter-btn" data-city="광주" onclick="selectCity('광주', this)">광주</button>
-            <button class="filter-btn" data-city="대구" onclick="selectCity('대구', this)">대구</button>
-            <button class="filter-btn" data-city="대전" onclick="selectCity('대전', this)">대전</button>
-            <button class="filter-btn" data-city="부산" onclick="selectCity('부산', this)">부산</button>
             <button class="filter-btn" data-city="서울" onclick="selectCity('서울', this)">서울</button>
-            <button class="filter-btn" data-city="세종" onclick="selectCity('세종', this)">세종</button>
-            <button class="filter-btn" data-city="울산" onclick="selectCity('울산', this)">울산</button>
-            <button class="filter-btn" data-city="인천" onclick="selectCity('인천', this)">인천</button>
-            <button class="filter-btn" data-city="전남" onclick="selectCity('전남', this)">전남</button>
-            <button class="filter-btn" data-city="전북" onclick="selectCity('전북', this)">전북</button>
+            <button class="filter-btn" data-city="경기" onclick="selectCity('경기', this)">경기</button>
+            <button class="filter-btn" data-city="부산" onclick="selectCity('부산', this)">부산</button>
             <button class="filter-btn" data-city="제주" onclick="selectCity('제주', this)">제주</button>
-            <button class="filter-btn" data-city="충남" onclick="selectCity('충남', this)">충남</button>
+            <button class="filter-btn" data-city="인천" onclick="selectCity('인천', this)">인천</button>
+            <button class="filter-btn" data-city="대구" onclick="selectCity('대구', this)">대구</button>
+            <button class="filter-btn" data-city="광주" onclick="selectCity('광주', this)">광주</button>
+            <button class="filter-btn" data-city="대전" onclick="selectCity('대전', this)">대전</button>
+            <button class="filter-btn" data-city="울산" onclick="selectCity('울산', this)">울산</button>
+            <button class="filter-btn" data-city="세종" onclick="selectCity('세종', this)">세종</button>
+            <button class="filter-btn" data-city="강원" onclick="selectCity('강원', this)">강원</button>
             <button class="filter-btn" data-city="충북" onclick="selectCity('충북', this)">충북</button>
+            <button class="filter-btn" data-city="충남" onclick="selectCity('충남', this)">충남</button>
+            <button class="filter-btn" data-city="전북" onclick="selectCity('전북', this)">전북</button>
+            <button class="filter-btn" data-city="전남" onclick="selectCity('전남', this)">전남</button>
+            <button class="filter-btn" data-city="경북" onclick="selectCity('경북', this)">경북</button>
+            <button class="filter-btn" data-city="경남" onclick="selectCity('경남', this)">경남</button>
           </div>
-        </div>
+</div>
+    </div>
 
+    <script>
+        const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQJNWvQO4xEdc6oYle5wIXjLXIUYeqmXDzB-k9qNDgPtNTSTEPTjMvkUg5HQxttVViWfyH4UryVtxJ/pub?gid=0&single=true&output=csv";
+
+        let restaurantData = [];
+        let currentCity = 'all';
+        let currentRegion = 'all';
+
+        // 시/도 정식 명칭 매핑 (검색 정확도 향상용)
+        const cityFullNameMap = {
+            '서울': '서울특별시',
+            '부산': '부산광역시',
+            '대구': '대구광역시',
+            '인천': '인천광역시',
+            '광주': '광주광역시',
+            '대전': '대전광역시',
+            '울산': '울산광역시',
+            '세종': '세종특별자치시',
+            '경기': '경기도',
+            '강원': '강원도',
+            '충북': '충청북도',
+            '충남': '충청남도',
+            '전북': '전라북도',
+            '전남': '전라남도',
+            '경북': '경상북도',
+            '경남': '경상남도',
+            '제주': '제주특별자치도'
+        };
+
+        // CSV 데이터 변환 함수
+        function parseCSV(csvText) {
+            const lines = [];
+            let row = [""];
+            let inQuotes = false;
+
+            for (let i = 0; i < csvText.length; i++) {
+                const c = csvText[i];
+                const next = csvText[i + 1];
+
+                if (c === '"') {
+                    if (inQuotes && next === '"') { 
+                        row[row.length - 1] += '"'; 
+                        i++; 
+                    } else { 
+                        inQuotes = !inQuotes; 
+                    }
+                } else if (c === ',' && !inQuotes) {
+                    row.push('');
+                } else if ((c === '\r' || c === '\n') && !inQuotes) {
+                    if (c === '\r' && next === '\n') { i++; }
+                    lines.push(row);
+                    row = [''];
+                } else {
+                    row[row.length - 1] += c;
+                }
+            }
+            if (row.length > 1 || row[0] !== '') {
+                lines.push(row);
+            }
+
+            if (lines.length === 0) return [];
+
+            const headers = lines[0].map(header => header.trim());
+            const result = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i];
+                if (values.length < headers.length) continue;
+                
+                const obj = {};
+                headers.forEach((header, index) => {
+                    let val = values[index] ? values[index].trim() : '';
+                    obj[header] = val;
+                });
+                result.push(obj);
+            }
+            return result;
+        }
+
+        // 시/도 비교 함수
+        function isMatchingCity(filterCity, dataCity) {
+            if (!dataCity) return false;
+            const fSub = filterCity.substring(0, 2);
+            const dSub = dataCity.substring(0, 2);
+            return fSub === dSub;
+        }
+
+        // 초기화
+        async function initApp() {
+            const listContainer = document.getElementById('list-container');
+            listContainer.innerHTML = "<div style='padding: 20px; color: #888; font-size: 14px;'>맛집 정보를 불러오는 중입니다...</div>";
+            
+            try {
+                const response = await fetch(sheetUrl);
+                if (!response.ok) throw new Error("스프레드시트 로드 실패");
+                
+                const csvText = await response.text();
+                restaurantData = parseCSV(csvText);
+                
+                // 시/도 버튼 개수 업데이트
+                updateCityButtonCounts();
+
+                displayList('all', 'all');
+
+                // 접속 시 첫 번째 맛집 위치로 이동
+                if (restaurantData.length > 0) {
+                    const firstStore = restaurantData[0];
+                    changeMap(firstStore.address + " " + firstStore.name, 16);
+                }
+            } catch (error) {
+                console.error("데이터 로드 실패:", error);
+                listContainer.innerHTML = "<div style='padding: 20px; color: #e03131; font-size: 14px;'>데이터 로드에 실패했습니다. 스프레드시트 설정을 확인해 주세요.</div>";
+            }
+        }
+
+        // 💡 시/도 버튼에 (숫자) 카운트 추가 함수
+        function updateCityButtonCounts() {
+            const cityButtons = document.querySelectorAll('#city-container .filter-btn');
+            
+            cityButtons.forEach(btn => {
+                const cityKey = btn.getAttribute('data-city');
+                let count = 0;
+
+                if (cityKey === 'all') {
+                    count = restaurantData.length;
+                    btn.innerText = `전체(${count})`;
+                } else {
+                    count = restaurantData.filter(store => isMatchingCity(cityKey, store.city)).length;
+                    btn.innerText = `${cityKey}(${count})`;
+                }
+            });
+        }
+
+        // 지도 키워드 및 줌 레벨 변경
+        function changeMap(keyword, zoom = 16) {
+            const mapUrl = `https://maps.google.com/maps?q=${encodeURIComponent(keyword)}&t=&z=${zoom}&ie=UTF-8&iwloc=&output=embed`;
+            document.getElementById('google-map').src = mapUrl;
+        }
+
+        // 시/도 선택 함수
+        function selectCity(city, buttonElement) {
+            document.querySelectorAll('#city-container .filter-btn').forEach(btn => btn.classList.remove('active'));
+            buttonElement.classList.add('active');
+
+            currentCity = city;
+            currentRegion = 'all';
+
+            const subSection = document.getElementById('sub-filter-section');
+            const regionContainer = document.getElementById('region-container');
+
+            if (city === 'all') {
+                subSection.style.display = 'none';
+                displayList('all', 'all');
+
+                if (restaurantData.length > 0) {
+                    changeMap(restaurantData[0].address + " " + restaurantData[0].name, 16);
+                }
+            } else {
+                subSection.style.display = 'block';
+                document.getElementById('sub-filter-label').innerText = `${city} 세부 지역`;
+                
+                // 선택된 시/도의 맛집 데이터 필터링
+                const cityStores = restaurantData.filter(store => isMatchingCity(city, store.city));
+                const totalCityCount = cityStores.length;
+
+                // 세부 지역 목록 추출 및 정렬
+                const regions = [...new Set(
+                    cityStores.map(store => store.region ? store.region.trim() : "")
+                )].filter(reg => reg && reg !== "-").sort();
+
+                // '전체(총 개수)' 버튼 생성
+                regionContainer.innerHTML = `<button class="filter-btn active" onclick="selectRegion('all', this)">전체(${totalCityCount})</button>`;
+                
+                if (regions.length === 0) {
+                    regionContainer.innerHTML += `<span style="font-size: 12px; color: #999; padding-left: 5px;">등록된 맛집 정보가 아직 없습니다.</span>`;
+                } else {
+                    // 💡 세부 구/시별 맛집 개수를 계산하여 버튼 생성
+                    regions.forEach(reg => {
+                        const regCount = cityStores.filter(store => store.region && store.region.trim() === reg).length;
+                        regionContainer.innerHTML += `<button class="filter-btn" onclick="selectRegion('${reg}', this)">${reg}(${regCount})</button>`;
+                    });
+                }
+
+                displayList(city, 'all');
+
+                // 시/도 전체 화면 전환
+                const targetKeyword = cityFullNameMap[city] || city;
+                changeMap(targetKeyword, 12);
+            }
+        }
+
+        // 세부 구/시 선택 함수
+        function selectRegion(region, buttonElement) {
+            document.querySelectorAll('#region-container .filter-btn').forEach(btn => btn.classList.remove('active'));
+            buttonElement.classList.add('active');
         <!-- 2단계: 세부 구/시 선택 -->
         <div id="sub-filter-section" style="display: none;">
           <div class="filter-label" id="sub-filter-label">세부 지역</div>
@@ -87,9 +409,17 @@
         </div>
       </div>
 
+            currentRegion = region;
+            displayList(currentCity, currentRegion);
       <div class="restaurant-list" id="list-container"></div>
     </div>
 
+            if (region === 'all') {
+                const targetKeyword = cityFullNameMap[currentCity] || currentCity;
+                changeMap(targetKeyword, 12);
+            } else {
+                changeMap(`${currentCity} ${region}`, 14);
+            }
     <div class="map-container">
       <iframe id="google-map" src="https://maps.google.com/maps?q=대한민국&t=&z=7&ie=UTF-8&iwloc=&output=embed"></iframe>
     </div>
@@ -126,7 +456,45 @@
             row.push(entry.trim());
             entry = '';
           } else entry += char;
-        }
+}
+
+        // 리스트 필터링 출력
+        function displayList(cityFilter, regionFilter) {
+            const listContainer = document.getElementById('list-container');
+            listContainer.innerHTML = ""; 
+
+            restaurantData.forEach((store) => {
+                const storeCity = store.city ? store.city.trim() : "";
+                const storeRegion = store.region ? store.region.trim() : "";
+
+                const matchCity = (cityFilter === 'all' || isMatchingCity(cityFilter, storeCity));
+                const matchRegion = (regionFilter === 'all' || storeRegion === regionFilter);
+
+                if (matchCity && matchRegion) {
+                    const listItem = document.createElement('div');
+                    listItem.className = 'restaurant-item';
+                    listItem.onclick = () => changeMap(store.address + " " + store.name, 16);
+                    
+                    const hasMenu = store.menu && store.menu.trim() !== "" && store.menu !== "-";
+                    const menuHtml = hasMenu ? `<div class="menu-info">${store.menu}</div>` : "";
+                    
+                    const categoryTag = store.category ? `<span class="restaurant-category">${store.category}</span>` : "";
+
+                    const hasInfo = store.info && store.info.trim() !== "" && store.info !== "-";
+                    const badgeHtml = hasInfo ? `<span class="badge">${store.info}</span>` : "";
+
+                    listItem.innerHTML = `
+                        <div class="restaurant-title-area">
+                            <h3>${store.name}</h3>
+                            ${categoryTag}
+                        </div>
+                        <p>${store.address}</p>
+                        ${menuHtml}
+                        ${badgeHtml}
+                    `;
+                    listContainer.appendChild(listItem);
+                }
+            });
         row.push(entry.trim());
 
         if (row.length >= 9) {
@@ -141,18 +509,26 @@
             corkage_info: row[7],
             description: row[8]
           });
-        }
+}
+
+        window.onload = initApp;
+    </script>
       }
       return result;
     }
 
-    // 시 데이터 불러오기
+    // 시 데이터 불러오기 및 정렬
     async function loadData() {
       try {
         const response = await fetch(sheetUrl);
         const csvText = await response.text();
         
+        // 데이터 파싱
         restaurantData = parseCSV(csvText);
+
+        // 🔥 ID 기준 내림차순 정렬 (높은 숫자가 맨 위로)
+        restaurantData.sort((a, b) => b.id - a.id);
+
         renderList(restaurantData);
       } catch (error) {
         console.error('데이터를 불러오는데 실패했습니다:', error);
