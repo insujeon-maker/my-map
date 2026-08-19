@@ -9,7 +9,7 @@
         body, html { height: 100%; font-family: 'Malgun Gothic', -apple-system, BlinkMacSystemFont, sans-serif; overflow: hidden; }
         .container { display: flex; height: 100%; width: 100%; }
         
-        /* 사이드바 스타일 */
+        /* 사이드바 스타일 (PC 기본) */
         .sidebar { width: 380px; height: 100%; background: #fff; box-shadow: 2px 0 5px rgba(0,0,0,0.1); z-index: 10; display: flex; flex-direction: column; }
         .sidebar-header { 
             padding: 20px; 
@@ -119,6 +119,68 @@
         /* 지도 영역 */
         .map-container { flex: 1; height: 100%; background: #e5e3df; }
         iframe { width: 100%; height: 100%; border: none; }
+
+        /* ==========================================
+           [추가] 모바일 전용 반응형 스타일 (화면 너비 768px 이하)
+           ========================================== */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column; /* 세로 배치로 변경 */
+            }
+
+            .sidebar {
+                width: 100%;
+                height: 45vh; /* 화면 전체 높이의 45%만 차지하도록 제한 */
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+
+            .sidebar-header {
+                padding: 12px 15px;
+            }
+
+            .sidebar-header h1 {
+                font-size: 16px;
+            }
+
+            .sidebar-header p {
+                font-size: 11px;
+                margin-top: 2px;
+            }
+
+            .sidebar-header .header-logo {
+                width: 45px;
+            }
+
+            .search-section {
+                padding: 8px 15px 4px 15px;
+            }
+
+            .filter-section {
+                padding: 8px 15px;
+                gap: 6px;
+            }
+
+            .filter-container {
+                max-height: 60px; /* 모바일에서 필터 영역 높이 축소 */
+            }
+
+            .filter-btn {
+                padding: 4px 10px;
+                font-size: 11px;
+            }
+
+            .restaurant-item {
+                padding: 12px 15px;
+            }
+
+            .restaurant-item h3 {
+                font-size: 14px;
+            }
+
+            .map-container {
+                height: 55vh; /* 지도가 화면의 남은 55%를 차지하도록 지정 */
+            }
+        }
     </style>
 </head>
 <body>
@@ -127,8 +189,8 @@
             <div class="sidebar-header">
                 <div class="header-text">
                     <h1>전국 콜키지프리 맛집 지도</h1>
-                    <p>술을 사랑하는 여러분을 위해<br>요즘이술이 준비했습니다 💜</p>
-                    <p style="font-size: 11px; margin-top: 8px; opacity: 0.85;">문의사항은 yosool@chosunbiz.com</p>
+                    <p>술을 사랑하는 여러분을 위해 요즘이술이 준비했습니다 💜</p>
+                    <p style="font-size: 10px; margin-top: 4px; opacity: 0.85;">문의사항은 yosool@chosunbiz.com</p>
                 </div>
                 <img class="header-logo" src="yosool_logo_65.png" alt="요즘이술 로고">
             </div>
@@ -191,7 +253,6 @@
         let currentRegion = 'all';
         let searchQuery = '';
 
-        // 시/도 정식 명칭 매핑
         const cityFullNameMap = {
             '서울': '서울특별시', '부산': '부산광역시', '대구': '대구광역시',
             '인천': '인천광역시', '광주': '광주광역시', '대전': '대전광역시',
@@ -201,7 +262,6 @@
             '경남': '경상남도', '제주': '제주특별자치도'
         };
 
-        // CSV 데이터 변환 함수
         function parseCSV(csvText) {
             const lines = [];
             let row = [""];
@@ -251,7 +311,6 @@
             return result;
         }
 
-        // 시/도 비교 함수
         function isMatchingCity(filterCity, dataCity) {
             if (!dataCity) return false;
             const fSub = filterCity.substring(0, 2);
@@ -259,7 +318,6 @@
             return fSub === dSub;
         }
 
-        // 앱 초기화
         async function initApp() {
             const listContainer = document.getElementById('list-container');
             listContainer.innerHTML = "<div style='padding: 20px; color: #888; font-size: 14px;'>맛집 정보를 불러오는 중입니다...</div>";
@@ -284,7 +342,6 @@
             }
         }
 
-        // 시/도 버튼 개수 카운트
         function updateCityButtonCounts() {
             const cityButtons = document.querySelectorAll('#city-container .filter-btn');
             
@@ -302,13 +359,11 @@
             });
         }
 
-        // 지도 경로 변경
         function changeMap(keyword, zoom = 16) {
             const mapUrl = `https://maps.google.com/maps?q=${encodeURIComponent(keyword)}&t=&z=${zoom}&ie=UTF-8&iwloc=&output=embed`;
             document.getElementById('google-map').src = mapUrl;
         }
 
-        // 검색어 입력 처리 함수
         function handleSearchInput() {
             const input = document.getElementById('search-input');
             const clearBtn = document.getElementById('search-clear');
@@ -319,7 +374,6 @@
             displayList(currentCity, currentRegion);
         }
 
-        // 검색어 지우기 함수
         function clearSearch() {
             const input = document.getElementById('search-input');
             input.value = '';
@@ -327,7 +381,6 @@
             input.focus();
         }
 
-        // 시/도 선택 함수
         function selectCity(city, buttonElement) {
             document.querySelectorAll('#city-container .filter-btn').forEach(btn => btn.classList.remove('active'));
             buttonElement.classList.add('active');
@@ -375,7 +428,6 @@
             }
         }
 
-        // 세부 구/시 선택 함수
         function selectRegion(region, buttonElement) {
             document.querySelectorAll('#region-container .filter-btn').forEach(btn => btn.classList.remove('active'));
             buttonElement.classList.add('active');
@@ -391,7 +443,6 @@
             }
         }
 
-        // 데이터 목록 출력 (다중 키워드 AND 검색 적용)
         function displayList(cityFilter, regionFilter) {
             const listContainer = document.getElementById('list-container');
             listContainer.innerHTML = ""; 
@@ -404,7 +455,6 @@
                 const matchCity = (cityFilter === 'all' || isMatchingCity(cityFilter, storeCity));
                 const matchRegion = (regionFilter === 'all' || storeRegion.trim() === regionFilter);
 
-                // 키워드 검색 매칭 로직 (띄어쓰기 기준 단어별 매칭)
                 let matchSearch = true;
                 if (searchQuery) {
                     const keywords = searchQuery.split(/\s+/).filter(k => k.length > 0);
