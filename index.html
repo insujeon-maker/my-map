@@ -406,19 +406,22 @@
 
                 // [추가] 키워드 검색 매칭 로직 (매장명, 주소, 메뉴, 카테고리, 콜키지정보 검사)
                 let matchSearch = true;
-                if (searchQuery) {
-                    const name = (store.name || "").toLowerCase();
-                    const address = (store.address || store.location || "").toLowerCase();
-                    const menu = (store.menu || store.price_range || "").toLowerCase();
-                    const category = (store.category || "").toLowerCase();
-                    const info = (store.info || store.corkage_info || "").toLowerCase();
+if (searchQuery) {
+    // 1. 입력된 검색어를 띄어쓰기 단위로 쪼개어 단어 배열로 만듭니다 (예: "마포 한우" -> ["마포", "한우"])
+    const keywords = searchQuery.split(/\s+/).filter(k => k.length > 0);
 
-                    matchSearch = name.includes(searchQuery) ||
-                                  address.includes(searchQuery) ||
-                                  menu.includes(searchQuery) ||
-                                  category.includes(searchQuery) ||
-                                  info.includes(searchQuery);
-                }
+    // 2. 매장의 모든 정보를 하나로 합친 텍스트를 생성합니다.
+    const fullText = (
+        (store.name || "") + " " +
+        (store.address || store.location || "") + " " +
+        (store.menu || store.price_range || "") + " " +
+        (store.category || "") + " " +
+        (store.info || store.corkage_info || "")
+    ).toLowerCase();
+
+    // 3. 입력한 모든 키워드(마포, 한우)가 매장 통합 텍스트 안에 각각 존재하는지 확인합니다.
+    matchSearch = keywords.every(keyword => fullText.includes(keyword));
+}
 
                 if (matchCity && matchRegion && matchSearch) {
                     count++;
