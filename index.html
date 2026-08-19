@@ -30,7 +30,7 @@
         .sidebar-header p { line-height: 1.5; margin-top: 5px; }
         .sidebar-header h1 { font-size: 20px; margin-bottom: 5px; }
         
-        /* [추가] 검색창 영역 스타일 */
+        /* 검색창 영역 스타일 */
         .search-section {
             padding: 12px 20px 5px 20px;
             background: #f8f9fa;
@@ -133,7 +133,7 @@
                 <img class="header-logo" src="yosool_logo_65.png" alt="요즘이술 로고">
             </div>
             
-            <!-- [추가] 검색창 영역 -->
+            <!-- 검색창 영역 -->
             <div class="search-section">
                 <div class="search-box">
                     <input type="text" id="search-input" class="search-input" placeholder="매장명, 메뉴, 키워드 검색..." oninput="handleSearchInput()">
@@ -189,7 +189,7 @@
         let restaurantData = [];
         let currentCity = 'all';
         let currentRegion = 'all';
-        let searchQuery = ''; // [추가] 검색어 상태 관리 변수
+        let searchQuery = '';
 
         // 시/도 정식 명칭 매핑
         const cityFullNameMap = {
@@ -308,7 +308,7 @@
             document.getElementById('google-map').src = mapUrl;
         }
 
-        // [추가] 검색어 입력 처리 함수
+        // 검색어 입력 처리 함수
         function handleSearchInput() {
             const input = document.getElementById('search-input');
             const clearBtn = document.getElementById('search-clear');
@@ -319,7 +319,7 @@
             displayList(currentCity, currentRegion);
         }
 
-        // [추가] 검색어 지우기 함수
+        // 검색어 지우기 함수
         function clearSearch() {
             const input = document.getElementById('search-input');
             input.value = '';
@@ -391,7 +391,7 @@
             }
         }
 
-        // 데이터 목록 출력 (검색어 필터 로직 추가)
+        // 데이터 목록 출력 (다중 키워드 AND 검색 적용)
         function displayList(cityFilter, regionFilter) {
             const listContainer = document.getElementById('list-container');
             listContainer.innerHTML = ""; 
@@ -404,24 +404,20 @@
                 const matchCity = (cityFilter === 'all' || isMatchingCity(cityFilter, storeCity));
                 const matchRegion = (regionFilter === 'all' || storeRegion.trim() === regionFilter);
 
-                // [추가] 키워드 검색 매칭 로직 (매장명, 주소, 메뉴, 카테고리, 콜키지정보 검사)
+                // 키워드 검색 매칭 로직 (띄어쓰기 기준 단어별 매칭)
                 let matchSearch = true;
-if (searchQuery) {
-    // 1. 입력된 검색어를 띄어쓰기 단위로 쪼개어 단어 배열로 만듭니다 (예: "마포 한우" -> ["마포", "한우"])
-    const keywords = searchQuery.split(/\s+/).filter(k => k.length > 0);
+                if (searchQuery) {
+                    const keywords = searchQuery.split(/\s+/).filter(k => k.length > 0);
+                    const fullText = (
+                        (store.name || "") + " " +
+                        (store.address || store.location || "") + " " +
+                        (store.menu || store.price_range || "") + " " +
+                        (store.category || "") + " " +
+                        (store.info || store.corkage_info || "")
+                    ).toLowerCase();
 
-    // 2. 매장의 모든 정보를 하나로 합친 텍스트를 생성합니다.
-    const fullText = (
-        (store.name || "") + " " +
-        (store.address || store.location || "") + " " +
-        (store.menu || store.price_range || "") + " " +
-        (store.category || "") + " " +
-        (store.info || store.corkage_info || "")
-    ).toLowerCase();
-
-    // 3. 입력한 모든 키워드(마포, 한우)가 매장 통합 텍스트 안에 각각 존재하는지 확인합니다.
-    matchSearch = keywords.every(keyword => fullText.includes(keyword));
-}
+                    matchSearch = keywords.every(keyword => fullText.includes(keyword));
+                }
 
                 if (matchCity && matchRegion && matchSearch) {
                     count++;
