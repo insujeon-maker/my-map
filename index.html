@@ -30,6 +30,28 @@
         .sidebar-header p { line-height: 1.5; margin-top: 5px; }
         .sidebar-header h1 { font-size: 20px; margin-bottom: 5px; }
         
+        /* 정보 제보하기 버튼 스타일 */
+        .report-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            margin-left: 6px;
+            padding: 2px 8px;
+            font-size: 10px;
+            font-weight: bold;
+            color: #681DD6;
+            background-color: #ffffff;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            vertical-align: middle;
+        }
+
+        .report-btn:hover {
+            background-color: #f3ebff;
+            transform: translateY(-1px);
+        }
+
         /* 검색창 영역 스타일 */
         .search-section {
             padding: 12px 20px 5px 20px;
@@ -190,7 +212,12 @@
                 <div class="header-text">
                     <h1>전국 콜키지프리 맛집 지도</h1>
                     <p>술을 사랑하는 여러분을 위해 요즘이술이 준비했습니다 💜</p>
-                    <p style="font-size: 10px; margin-top: 4px; opacity: 0.85;">문의사항은 yosool@chosunbiz.com</p>
+                    <p style="font-size: 10px; margin-top: 6px; opacity: 0.95; display: flex; align-items: center; flex-wrap: wrap;">
+                        문의사항은 yosool@chosunbiz.com
+                        <a href="mailto:yosool@chosunbiz.com?subject=[콜키지프리 지도] 정보 제보/문의" class="report-btn">
+                            ✉️ 정보제보하기
+                        </a>
+                    </p>
                 </div>
                 <img class="header-logo" src="yosool_logo_65.png" alt="요즘이술 로고">
             </div>
